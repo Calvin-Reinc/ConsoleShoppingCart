@@ -1,0 +1,44 @@
+Iteration 2 — Object-Oriented Shopping Cart
+
+Objective: Rebuild the shopping cart using proper object-oriented programming.
+
+You're no longer allowed to keep everything inside one class.
+
+Functional requirements
+1. Introduce a Product entity.
+2. Introduce a ShoppingCart entity.
+3. Products must have unique identifiers.
+4. Customers must be able to add products to their carts.
+5. Customers must be able to remove products.
+6. Customers must be able to update product quantities.
+7. Display individual product information.
+8. Display the complete cart with quantities and subtotals.
+9. Calculate the overall cart total.
+10. Prevent invalid quantities and invalid product information.
+
+Technical requirements
+- Create separate classes for your application.
+- Implement constructors.
+- Apply encapsulation.
+- Use private instance variables.
+- Implement appropriate getters and setters.
+- Use ArrayList to manage collections of products and cart items.
+- Implement methods that operate on objects.
+- Use method overloading where appropriate.
+- Establish relationships between your classes.
+
+Additional challenges
+- Prevent duplicate cart entries for the same product.
+- If a customer adds an existing cart item again, consider how the quantity should behave.
+- Ensure that product information is not modified accidentally through inappropriate access.
+
+Restrictions
+- No database.
+- No file handling.
+- No GUI.
+
+Completion criteria
+Your application must demonstrate that you understand how objects communicate with each other and how responsibilities are distributed between classes.
+
+Documentation: Explain encapsulation, constructors, object relationships, ArrayList and why you separated your classes.
+
