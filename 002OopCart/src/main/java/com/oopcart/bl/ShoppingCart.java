@@ -40,7 +40,7 @@ public class ShoppingCart {
         
         //if the product is still available then..
         if (existingItem != null) {
-            if ( product.getQuantity() > 0) {
+            if ( product.getQuantity() > 0 && product.getQuantity()+1 <= product.getQuantity()) {
             // If it exists, update the quantity
                 existingItem.setQuantity(existingItem.getQuantity() + 1);
                 product.setQuantity(product.getQuantity()-1);
@@ -55,9 +55,11 @@ public class ShoppingCart {
                 CartItem newItem = new CartItem(product, 1);
                 product.setQuantity(product.getQuantity()-1);
                 cartItems.add(newItem);
-            }
+                
+                return "Product ID "+product.getProductID()+" added to cart";
+            } return "Error. Product out of stock.";
         }
-        return "Product ID "+product.getProductID()+" added to cart";
+        
     } 
     
     
@@ -70,7 +72,7 @@ public class ShoppingCart {
         //if the product is still available then..
         if (existingItem != null) {
             // If it exists, update the quantity
-            if (quantity <= product.getQuantity()) {
+            if (quantity <= product.getQuantity() && quantity>0) {
                 existingItem.setQuantity(existingItem.getQuantity() + quantity);
                 product.setQuantity(product.getQuantity()-quantity);
                 return "Product ID "+existingItem.getProduct().getProductID()+" updated";
@@ -96,7 +98,7 @@ public class ShoppingCart {
         CartItem toRemoveItem = findCartItem(product);
         
         if (toRemoveItem != null) {
-            product.setQuantity(toRemoveItem.getQuantity());
+            product.setQuantity(product.getQuantity()+toRemoveItem.getQuantity());
             cartItems.remove(toRemoveItem);    
             return "Product removed from cart.";
         } else {
@@ -110,9 +112,11 @@ public class ShoppingCart {
         CartItem toUpdateItem = findCartItem(product);
         
         if (toUpdateItem != null) {
-            System.out.println(quantity+" - "+product.getQuantity());
+            System.out.println(quantity+" - "+product.getQuantity()+" - "+toUpdateItem.getQuantity());
             if (quantity <= toUpdateItem.getQuantity() && quantity+product.getQuantity()>0) {
-                toUpdateItem.setQuantity(toUpdateItem.getQuantity()-quantity);
+                product.setQuantity(product.getQuantity()+toUpdateItem.getQuantity());
+                toUpdateItem.setQuantity(quantity);
+                
             } else {
                 return "Quantity over stock remaining.";
             }

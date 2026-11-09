@@ -13,8 +13,8 @@ public class Product {
     private String name;
     private int productID;
     private String desc;
-    private Double price;
-    private Boolean available;
+    private double price;
+    private boolean available;
     private int quantity;
 
     public Product() {
@@ -91,7 +91,7 @@ public class Product {
     public String toString() {
         String status = "Out of stock";
         if (quantity>0) {status = "In Stock";}
-        return "ID: " + productID + " | " + name + " - R" + price + " (" + desc + ")" + " | "+status;
+        return "ID: " + productID + " | " + name + " - R" + price + " (" + desc + ")" + " | "+status+quantity;
     }
     
 }
