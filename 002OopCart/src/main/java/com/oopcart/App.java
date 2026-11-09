@@ -150,6 +150,7 @@ public class App {
                     cart.displayCart();
                 } else if (userOption ==3 ) {
                     cart.displayCart();
+                    if (cartItems.isEmpty()) {continue;}
                     System.out.print("=== Remove From Cart ===\nEnter the ID of the product you want to remove from cart: ");
                     userID = key.nextInt();
                     
