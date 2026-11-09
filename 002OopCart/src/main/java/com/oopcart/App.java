@@ -54,7 +54,7 @@ public class App {
                 + "1. Add a product to cart(Using ID).\n"
                 + "2. View shopping cart.\n"
                 + "3. Remove cart item.\n"
-                + "4. Clear cart.\n"
+                + "4. Update cart.\n"
                 + "5. Exit."
                 + "\nOption: ");
     
@@ -80,48 +80,41 @@ public class App {
     
     
     public String mainAddToCart(int userID) {
-        String msg="Something went wrong!";
+        String msg="Invalid product ID.";
+
         
         for (Product item:products) {
-            if (item.getAvailable() && item.getProductID()== userID) {
+            if(item.getProductID()==userID) {
                 msg = cart.addToCart(item);
-           }
+            }    
         }
         
         return msg;
-    } 
+    }
     
     
     public String mainAddToCart(int userID, int quantity) {
         
-        String msg = "Product ID not found!";
+        String msg = "Invalid product ID.";
         
         for (Product item:products) {
             if(item.getProductID()==userID) {
-                if (item.getAvailable()) {
-                    msg = cart.addToCart(item, quantity);
-                } else {
-                    msg="Product out of stock!";
-                }    
-            }
+                msg = cart.addToCart(item, quantity);
+            }    
         }
         
         return msg;
-
     }
+        
     
-    
-    public boolean verifyID(int userID) {
+    public Product verifyID(int userID) {
         for (Product item:products) {
             if(item.getProductID()==userID) {
-                return true;
-            } else {
-                return false;
-            }
+                return item;
+            } 
         }
         
-        return false;
-
+        return null;
     }
     
     
@@ -131,11 +124,12 @@ public class App {
         Scanner key = new Scanner(System.in);
         Product product = new Product();
         
-        
+        System.out.println("OOP Shopping cart.");
         
         while (status) {
             displayMenu();
 
+            try {
                 userOption = key.nextInt();
                 
                 if ( userOption ==1 ) {
@@ -154,13 +148,33 @@ public class App {
                     
                 } else if (userOption ==2 ) {
                     cart.displayCart();
-                } else if (userOption ==1 ) {
-
-                } else if (userOption ==1 ) {
-
-                } else if (userOption ==1 ) {
-
+                } else if (userOption ==3 ) {
+                    cart.displayCart();
+                    System.out.print("=== Remove From Cart ===\nEnter the ID of the product you want to remove from cart: ");
+                    userID = key.nextInt();
+                    
+                    if (verifyID(userID)!=null) {
+                        cart.removeFromCart(verifyID(userID));
+                        System.out.println(verifyID(userID).toString()+" === REMOVED!");
+                    } else {System.out.println("Product ID not found.");}
+                } else if (userOption ==4 ) {
+                    cart.displayCart();
+                    System.out.print("=== Update Cart ===\nEnter the ID of the product you want to update: ");
+                    userID = key.nextInt();            
+                    System.out.print("\nEnter quantity: ");
+                    quantity = key.nextInt();
+                    if (verifyID(userID)!=null) {
+                        cart.updateCart(verifyID(userID), quantity);
+                    } else {System.out.println("Product ID not found.");}
+                } else if (userOption ==5 ) {
+                    System.out.println("Clearing cart, Gooodbye.");
+                    status=false;
                 }
+            } catch (Exception e) {
+                System.out.println("An error occured please try again.");
+                key.next();
+                continue;
+            }
 
             
         }

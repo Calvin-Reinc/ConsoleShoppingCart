@@ -62,7 +62,11 @@ public class Product {
     }
 
     public Boolean getAvailable() {
-        if (this.quantity == 0) {return false;}
+
+        if (quantity <= 0) {
+            available = false;
+        }
+
         return available;
     }
 
@@ -85,7 +89,7 @@ public class Product {
     
     @Override
     public String toString() {
-        return "ID: " + productID + " | " + name + " - R" + price + " (" + desc + ")";
+        return "ID: " + productID + " | " + name + " - R" + price + " (" + desc + ")" + " | ";
     }
     
 }
