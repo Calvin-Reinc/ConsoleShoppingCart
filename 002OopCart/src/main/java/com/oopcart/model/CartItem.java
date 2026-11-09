@@ -39,6 +39,13 @@ public class CartItem {
     public void setQuantity(int quantity) {
         this.quantity = quantity;
     }
+
+    @Override
+    public String toString() {
+        return "ID: " + product.getProductID() + " | " + product.getName() +
+                " - R" + product.getPrice() + " (" + product.getDesc() + ")" +
+                " | Quantity: "+quantity;
+    }
     
     
     

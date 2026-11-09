@@ -89,7 +89,9 @@ public class Product {
     
     @Override
     public String toString() {
-        return "ID: " + productID + " | " + name + " - R" + price + " (" + desc + ")" + " | ";
+        String status = "Out of stock";
+        if (quantity>0) {status = "In Stock";}
+        return "ID: " + productID + " | " + name + " - R" + price + " (" + desc + ")" + " | "+status;
     }
     
 }

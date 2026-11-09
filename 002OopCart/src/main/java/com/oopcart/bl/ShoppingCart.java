@@ -23,14 +23,15 @@ public class ShoppingCart {
         this.cartTotal = cartTotal;
     }
 
+    
     public ArrayList<CartItem> getCartItems() {
         return cartItems;
     }
 
+    
     public void setCartItems(ArrayList<CartItem> cartItems) {
         this.cartItems = cartItems;
     }
-
     
     
     public String addToCart(Product product) {
@@ -49,10 +50,12 @@ public class ShoppingCart {
             }
                 
         } else {
-            // If it doesn't exist, create a new CartItem and add it to the list with 1 quantity
-            CartItem newItem = new CartItem(product, 1);
-            product.setQuantity(product.getQuantity()-1);
-            cartItems.add(newItem);
+            if ( product.getQuantity() > 0) {
+                // If it doesn't exist, create a new CartItem and add it to the list with 1 quantity
+                CartItem newItem = new CartItem(product, 1);
+                product.setQuantity(product.getQuantity()-1);
+                cartItems.add(newItem);
+            }
         }
         return "Product ID "+product.getProductID()+" added to cart";
     } 
@@ -75,10 +78,13 @@ public class ShoppingCart {
             } else { return "Error. Invalid quantity or product out of stock!";}
         } else {
             // If it doesn't exist, create a new CartItem and add it to the list
-            CartItem newItem = new CartItem(product, quantity);
-            product.setQuantity(product.getQuantity()-quantity);
-            cartItems.add(newItem);
-            return "Product ID "+product.getProductID()+" added to cart";
+            if (quantity <= product.getQuantity()) {
+                CartItem newItem = new CartItem(product, quantity);
+                product.setQuantity(product.getQuantity()-quantity);
+                cartItems.add(newItem);
+                return "Product ID "+product.getProductID()+" added to cart";
+            } else { return "Error. Invalid quantity or product out of stock!";}
+        
         }  
         
         
@@ -104,7 +110,8 @@ public class ShoppingCart {
         CartItem toUpdateItem = findCartItem(product);
         
         if (toUpdateItem != null) {
-            if (quantity <= product.getQuantity() && quantity+product.getQuantity()>0) {
+            System.out.println(quantity+" - "+product.getQuantity());
+            if (quantity <= toUpdateItem.getQuantity() && quantity+product.getQuantity()>0) {
                 toUpdateItem.setQuantity(toUpdateItem.getQuantity()-quantity);
             } else {
                 return "Quantity over stock remaining.";
@@ -132,8 +139,9 @@ public class ShoppingCart {
         DecimalFormat df = new DecimalFormat("R#,##0.00");
         
         if (!cartItems.isEmpty()) {
+            System.out.println("\n\t==== In Stock ====\t\n");
             for (CartItem item:cartItems) {
-                System.out.println(item.getProduct().toString()+" Quantity: "+item.getQuantity());
+                System.out.println(item.toString());
             }
             System.out.println("=== TOTAL ===  :  "+df.format(getCartTotal()));
         } else {System.out.println("Cart empty.");}

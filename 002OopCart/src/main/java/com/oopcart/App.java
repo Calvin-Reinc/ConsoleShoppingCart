@@ -150,13 +150,14 @@ public class App {
                     cart.displayCart();
                 } else if (userOption ==3 ) {
                     cart.displayCart();
-                    if (cartItems.isEmpty()) {continue;}
+                    if (cart.getCartItems().isEmpty()) {continue;}
                     System.out.print("=== Remove From Cart ===\nEnter the ID of the product you want to remove from cart: ");
                     userID = key.nextInt();
                     
                     if (verifyID(userID)!=null) {
                         cart.removeFromCart(verifyID(userID));
                         System.out.println(verifyID(userID).toString()+" === REMOVED!");
+                        cart.displayCart();
                     } else {System.out.println("Product ID not found.");}
                 } else if (userOption ==4 ) {
                     cart.displayCart();
@@ -165,7 +166,7 @@ public class App {
                     System.out.print("\nEnter quantity: ");
                     quantity = key.nextInt();
                     if (verifyID(userID)!=null) {
-                        cart.updateCart(verifyID(userID), quantity);
+                        System.out.println(cart.updateCart(verifyID(userID), quantity));
                     } else {System.out.println("Product ID not found.");}
                 } else if (userOption ==5 ) {
                     System.out.println("Clearing cart, Gooodbye.");
