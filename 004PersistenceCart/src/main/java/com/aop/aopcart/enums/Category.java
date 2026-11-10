@@ -9,9 +9,9 @@ package com.aop.aopcart.enums;
  * @author squid
  */
 public enum Category {
-    MosibiBlack("Mosibi Series"),
-    CarelBlack("Carel Black I"),
-    Disguised("Disguised Editions");
+    MOSIBIBLACK("MosibiSeries"),
+    CARELBLACK("CarelBlack"),
+    DISGUISED("Disguised");
 
     private final String displayName;
 

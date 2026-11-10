@@ -18,6 +18,8 @@ import com.aop.aopcart.model.Shirt;
 import com.aop.aopcart.payment.CreditCardPayment;
 import com.aop.aopcart.payment.PayPalPayment;
 import com.aop.aopcart.payment.PaymentManager;
+import com.aop.aopcart.repos.OrderRepo;
+import com.aop.aopcart.repos.ProductRepo;
 import java.util.Collection;
 import java.util.List;
 import java.util.Scanner;
@@ -30,31 +32,38 @@ public class App {
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        ProductManager catalogue = new ProductManager();
+        
+        ProductRepo productrepo = new ProductRepo("data");
+        OrderRepo orderRepo = new OrderRepo("data");
+        
+        ProductManager catalogue = new ProductManager(productrepo);
         ShoppingCart cart = new ShoppingCart();
-        CheckoutManager checkoutService = new CheckoutManager();
-
-        // 1. Populate initial catalogue data
-        seedCatalogue(catalogue);
+        CheckoutManager checkoutService = new CheckoutManager(orderRepo, productrepo);
+        
+        List<OrderRecord> orderHistory = orderRepo.loadOrders();
+        boolean running = true;
 
         System.out.println("=== Welcome to the Smart Art & Apparel Store (Iteration 3) ===");
 
-        boolean running = true;
+        
         while (running) {
             printMenu();
             String choice = scanner.nextLine().trim();
 
             try {
                 switch (choice) {
-                    case "1" -> displayCatalogue(catalogue.getAllProducts());
+                    case "1" -> displayCatalogue(catalogue.getCatalogue().values());
                     case "2" -> filterByCategoryPrompt(catalogue, scanner);
                     case "3" -> searchByNamePrompt(catalogue, scanner);
                     case "4" -> sortCataloguePrompt(catalogue, scanner);
                     case "5" -> addProductToCartPrompt(catalogue, cart, scanner);
                     case "6" -> viewCartAndTotals(cart);
-                    case "7" -> processCheckoutPrompt(cart, checkoutService, scanner);
+                    case "7" -> processCheckoutPrompt(cart, checkoutService, scanner, catalogue);
                     case "8" -> viewOrderHistory(checkoutService);
-                    case "9" -> {
+                    case "9" -> registerProduct(catalogue, scanner);
+                    case "10" -> updateStock(catalogue, scanner);
+                    case "11" -> removeProduct(catalogue, scanner);
+                    case "12" -> {
                         running = false;
                         System.out.println("Thank you for shopping with us!");
                     }
@@ -72,10 +81,10 @@ public class App {
     
     
     private static void seedCatalogue(ProductManager catalogue) {
-        catalogue.addProduct(new Shirt("S001", "Urban Graphic Tee", 35.00, 10, Category.CarelBlack, "L", "Cotton"));
-        catalogue.addProduct(new Shirt("S002", "Minimalist Logo Hoodie", 65.00, 3, Category.MosibiBlack, "XL", "Fleece"));
-        catalogue.addProduct(new ArtPiece("A001", "Neon Dreams Print", 120.00, 2, Category.MosibiBlack, false, "24x36 Canvas"));
-        catalogue.addProduct(new ArtPiece("A002", "Cyberpunk Wallpaper Pack", 15.00, 100, Category.Disguised, true, "4K PNG Bundle"));
+        catalogue.addProduct(new Shirt("S001", "Urban Graphic Tee", 35.00, 10, Category.CARELBLACK, "L", "Cotton"));
+        catalogue.addProduct(new Shirt("S002", "Minimalist Logo Hoodie", 65.00, 3, Category.MOSIBIBLACK, "XL", "Fleece"));
+        catalogue.addProduct(new ArtPiece("A001", "Neon Dreams Print", 120.00, 2, Category.MOSIBIBLACK, false, "24x36 Canvas"));
+        catalogue.addProduct(new ArtPiece("A002", "Cyberpunk Wallpaper Pack", 15.00, 100, Category.DISGUISED, true, "4K PNG Bundle"));
     }   
     
     private static void printMenu() {
@@ -88,15 +97,21 @@ public class App {
         System.out.println("6. View Cart & Totals (with Discounts)");
         System.out.println("7. Checkout & Pay");
         System.out.println("8. View Session Purchase History");
-        System.out.println("9. Exit");
+        System.out.println("9. Register New Product");
+        System.out.println("10. Update Product Stock");
+        System.out.println("11. Remove Product from Catalogue");
+        System.out.println("12. Exit");
         System.out.print("Select an option: ");
     }
     
     private static void displayCatalogue(Collection<Product> products) {
-        System.out.println("\n\t=== PRODUCT CATALOGUE ===");
-        for (Product p : products) {
-            System.out.println("[" + p.getProductId() + "] " + p.getProductDetails());
-        }
+        
+        if (!products.isEmpty()) {
+            System.out.println("\n\t=== PRODUCT CATALOGUE ===");
+            for (Product p : products) {
+                System.out.println("[" + p.getProductId() + "] " + p.getProductDetails());
+            }
+        } else {System.out.println("\n\t=== PRODUCT CATALOGUE EMPTY ===");}
     }
     
     private static void filterByCategoryPrompt(ProductManager catalogue, Scanner scanner) {
@@ -127,8 +142,7 @@ public class App {
             displayCatalogue(results);
         }
     }
-    
-    
+       
     private static void sortCataloguePrompt(ProductManager catalogue, Scanner scanner) {
         System.out.print("Sort ascending? (true/false): ");
         boolean asc = Boolean.parseBoolean(scanner.nextLine().toLowerCase());
@@ -137,7 +151,7 @@ public class App {
     }
     
     private static void addProductToCartPrompt(ProductManager catalogue, ShoppingCart cart, Scanner scanner) {
-        displayCatalogue(catalogue.getAllProducts());
+        displayCatalogue(catalogue.getCatalogue().values());
         System.out.print("Enter Product ID to add: ");
         String id = scanner.nextLine().trim();
         Product product = catalogue.getProduct(id);
@@ -176,7 +190,7 @@ public class App {
         System.out.printf("Final Total:    $%.2f%n", finalTotal);
     }
     
-    private static void processCheckoutPrompt(ShoppingCart cart, CheckoutManager checkoutService, Scanner scanner) {
+    private static void processCheckoutPrompt(ShoppingCart cart, CheckoutManager checkoutService, Scanner scanner, ProductManager pm) {
         if (cart.isEmpty()) {
             System.out.println("Cannot checkout. Your cart is empty.");
             return;
@@ -206,7 +220,7 @@ public class App {
             type = PaymentType.PAYPAL;
         }
 
-        OrderRecord record = checkoutService.processCheckout(cart, manager, type);
+        OrderRecord record = checkoutService.processCheckout(cart, manager, type, pm);
         System.out.println("\nCheckout Successful!");
         System.out.println(record.getOrderReceipt());
     }
@@ -223,6 +237,60 @@ public class App {
         for (OrderRecord order : orders) {
             System.out.println(order.getOrderReceipt());
         }
+    }
+    
+    private static void registerProduct(ProductManager cm, Scanner scanner) {
+        System.out.print("Enter type (1 for Shirt, 2 for Art Piece): ");
+        String type = scanner.nextLine().trim();
+
+        System.out.print("Enter Product ID: ");
+        String id = scanner.nextLine().trim();
+        System.out.print("Enter Name: ");
+        String name = scanner.nextLine().trim();
+        System.out.print("Enter Price: ");
+        double price = Double.parseDouble(scanner.nextLine().trim());
+        System.out.print("Enter Stock Quantity: ");
+        int stock = Integer.parseInt(scanner.nextLine().trim());
+
+        System.out.println("CarelBlack, MosibiBlack, Disguised): ");
+        Category category = Category.valueOf(scanner.nextLine().trim().toUpperCase());
+
+        if ("1".equals(type)) {
+            System.out.print("Enter Size (e.g., S, M, L, XL): ");
+            String size = scanner.nextLine().trim();
+            System.out.print("Enter Fabric Type: ");
+            String fabric = scanner.nextLine().trim();
+            cm.registerProduct(new Shirt(id, name, price, stock, category, size, fabric));
+        } else {
+            System.out.print("Is it digital? (true/false): ");
+            boolean isDigital = Boolean.parseBoolean(scanner.nextLine().trim());
+            System.out.print("Enter Dimensions: ");
+            String dims = scanner.nextLine().trim();
+            cm.registerProduct(new ArtPiece(id, name, price, stock, category, isDigital, dims));
+        }
+        System.out.println("[Success] Product registered and saved to disk.");
+    }
+
+    private static void updateStock(ProductManager pm, Scanner scanner) {
+        System.out.print("Enter Product ID to update: ");
+        String id = scanner.nextLine().trim();
+        System.out.print("Enter new stock quantity: ");
+        int newStock = Integer.parseInt(scanner.nextLine().trim());
+        pm.updateProductStock(id, newStock);
+        System.out.println("[Success] Stock level updated and persisted.");
+    }
+
+    private static void removeProduct(ProductManager pm, Scanner scanner) {
+        if (pm.getCatalogue().isEmpty()) {
+            System.out.println("[Info] The catalogue is currently empty. No products to remove.");
+            return;
+        }
+        
+        System.out.print("Enter Product ID to remove: ");
+        String id = scanner.nextLine().trim();
+        
+        pm.removeProduct(id);
+        System.out.println("[Success] Product removed from catalogue.");
     }
     
     

@@ -8,7 +8,7 @@ package com.aop.aopcart.exception;
  *
  * @author squid
  */
-public class ProductNotFoundException extends Exception {
+public class ProductNotFoundException extends RuntimeException {
 
     /**
      * Creates a new instance of <code>ProductNotFoundException</code> without
@@ -23,7 +23,7 @@ public class ProductNotFoundException extends Exception {
      *
      * @param msg the detail message.
      */
-    public ProductNotFoundException(String productName) {
-        super(String.format("Product missing: Cannot find '%s' in catalogue.", productName));
+    public ProductNotFoundException(String sku) {
+        super("Product with SKU '" + sku + "' could not be found.");
     }
 }
