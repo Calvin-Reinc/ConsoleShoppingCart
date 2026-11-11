@@ -8,7 +8,9 @@ import com.aop.aopcart.exception.OutOfStockException;
 import com.aop.aopcart.model.CartItem;
 import com.aop.aopcart.model.Product;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -16,6 +18,8 @@ import java.util.Optional;
  * @author squid
  */
 public class ShoppingCart {
+    // Maps customerId to their specific ShoppingCart
+    private final Map<String, ShoppingCart> customerCarts = new HashMap<>();
     private List<CartItem> items = new ArrayList<>();
     
     public List<CartItem> getItems() {
@@ -61,8 +65,17 @@ public class ShoppingCart {
         items.clear();
     }
     
+    public void clearCart(String customerId) {
+        customerCarts.remove(customerId);
+    }
+    
     public boolean isEmpty() {
         return items.isEmpty();
+    }
+    
+    public ShoppingCart getCartForCustomer(String customerId) {
+        // Compute if absent: creates a new cart automatically if the customer doesn't have one yet
+        return customerCarts.computeIfAbsent(customerId, id -> new ShoppingCart());
     }
     
     

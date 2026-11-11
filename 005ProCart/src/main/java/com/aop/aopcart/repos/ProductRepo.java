@@ -26,18 +26,12 @@ import java.util.Map;
  */
 public class ProductRepo {
     private final Path filePath = Paths.get("data", "products.txt");
-    private final Path backupPath;
+    private final Path backupPath = Paths.get("data", "backup.txt");
 
-    public ProductRepo(String dataDir) {
-        try {
-            Path dir = Paths.get(dataDir);
-            Files.createDirectories(dir);
-            //this.filePath = filePath;
-            this.backupPath = dir.resolve("products_backup_" + System.currentTimeMillis() + ".bak");
-        } catch (IOException e) {
-            throw new DataStorageException("Failed to initialize product data storage directory.", e);
-        }
+    public ProductRepo() {
     }
+    
+    
     
     public Map<String, Product> loadProducts() {
         Map<String, Product> products = new HashMap<>();

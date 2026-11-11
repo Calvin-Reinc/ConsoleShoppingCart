@@ -6,49 +6,87 @@ package com.aop.aopcart.repos;
 
 import com.aop.aopcart.exception.DataStorageException;
 import com.aop.aopcart.model.OrderRecord;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  *
  * @author squid
  */
 public class OrderRepo {
-    private final Path filePath;
+    private final Path filePath = Paths.get("data", "orders.txt");
 
-    public OrderRepo(String dataDir) {
-        try {
-            Path dir = Paths.get(dataDir);
-            Files.createDirectories(dir);
-            this.filePath = dir.resolve("orders.dat"); // Binary serialization for immutable order records
-        } catch (IOException e) {
-            throw new DataStorageException("Failed to initialize orders storage.", e);
-        }
+    public OrderRepo() {
     }
 
-    @SuppressWarnings("unchecked")
-    public List<OrderRecord> loadOrders() {
+    public List<OrderRecord> loadAllOrders() {
+        List<OrderRecord> orders = new ArrayList<>();
         if (!Files.exists(filePath)) {
-            return new ArrayList<>();
+            return orders;
         }
-        try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(filePath))) {
-            return (List<OrderRecord>) ois.readObject();
-        } catch (Exception e) {
-            System.err.println("[Warning] Could not load previous orders. Starting fresh history.");
-            return new ArrayList<>();
+
+        try (BufferedReader reader = Files.newBufferedReader(filePath)) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.trim().isEmpty()) {
+                    continue;
+                }
+                try {
+                    OrderRecord order = OrderRecord.deserialize(line);
+                    orders.add(order);
+                } catch (Exception e) {
+                    System.err.println("[Warning] Skipping malformed order record: " + line);
+                }
+            }
+        } catch (IOException e) {
+            throw new DataStorageException("Failed to load order history.", e);
         }
+        return orders;
+    }
+    
+    // Filter orders specifically for the logged-in customer using Stream API
+    public List<OrderRecord> getOrdersForCustomer(String customerId) {
+        return loadAllOrders().stream()
+                .filter(order -> order.getCustomerId().equals(customerId))
+                .collect(Collectors.toList());
     }
 
-    public void saveOrders(List<OrderRecord> orders) {
-        try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(filePath, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING))) {
-            oos.writeObject(orders);
+    public void saveOrder(OrderRecord newOrder) {
+        List<OrderRecord> orders = loadAllOrders();
+        orders.add(newOrder);
+
+        try {
+            Path parent = filePath.getParent();
+            if (parent != null && !Files.exists(parent)) {
+                Files.createDirectories(parent);
+            }
+
+            Path tempFile = filePath.resolveSibling("orders.tmp");
+
+            try (BufferedWriter writer = Files.newBufferedWriter(tempFile, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+                for (OrderRecord order : orders) {
+                    writer.write(order.serialize());
+                    writer.newLine();
+                }
+            }
+
+            try {
+                Files.move(tempFile, filePath, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            } catch (IOException e) {
+                Files.move(tempFile, filePath, StandardCopyOption.REPLACE_EXISTING);
+            }
+
         } catch (IOException e) {
             throw new DataStorageException("Failed to save order history.", e);
         }
